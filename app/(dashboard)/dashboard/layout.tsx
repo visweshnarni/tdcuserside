@@ -13,11 +13,20 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-[#FFFFFF]">
+    <div className="min-h-screen bg-[#FFFFFF] ">
+      
+      {/* Top header */}
       <DashboardHeader />
-      <div className="flex gap-6 px-6 py-6">
-        <Sidebar />
-        <main className="flex-1 relative overflow-hidden">
+
+      {/* Sidebar + Content */}
+      <div className="flex px-6 py-6">
+        {/* Sidebar with fixed width */}
+        <div className="w-64">
+          <Sidebar />
+        </div>
+
+        {/* Main content area */}
+        <main className="flex-1 relative overflow-hidden ml-6">
           <AnimatePresence mode="wait">
             <motion.div
               key={pathname}

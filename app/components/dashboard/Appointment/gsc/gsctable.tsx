@@ -88,7 +88,8 @@ export default function GscDataTable({ data }: Props) {
         <div className="flex justify-between items-center px-4 py-3 border-t">
           <p className="text-sm text-gray-600">
             Showing{" "}
-            {Math.min((currentPage - 1) * itemsPerPage + 1, filteredData.length)} to{" "}
+            {Math.min((currentPage - 1) * itemsPerPage + 1, filteredData.length)}{" "}
+            to{" "}
             {Math.min(currentPage * itemsPerPage, filteredData.length)} of{" "}
             {filteredData.length} records
           </p>

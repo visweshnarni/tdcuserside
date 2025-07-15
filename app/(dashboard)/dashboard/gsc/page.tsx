@@ -37,7 +37,7 @@ export default function GscPage() {
   };
 
   return (
-    <div className="w-full px-4 sm:px-6 md:px-8 pt-6 md:pl-72 max-w-screen-xl mx-auto">
+    <div>
       <h1 className="text-3xl font-semibold text-[#00694A] font-francois-one mb-6 pb-2 text-center">
         Good Standing Certificate
       </h1>
