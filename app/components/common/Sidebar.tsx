@@ -20,8 +20,8 @@ const menuItems = [
 		children: [
 			{ label: 'Registration', path: '/dashboard/appointment/registration' },
 			{ label: 'Renewal (Tatkal)', path: '/dashboard/appointment/renewal-tatkal' },
-			{ label: 'Good Standing Certificates', path: '/dashboard/appointment/gsc' },
-			{ label: 'No Objection Certificate', path: '/dashboard/appointment/noc' },
+			{ label: 'Good Standing Certificates', path: '/dashboard/appointments/gsc' },
+			{ label: 'No Objection Certificate', path: '/dashboard/appointments/noc' },
 		],
 	},
 	{ label: 'Payments', path: '/dashboard/payments' },
