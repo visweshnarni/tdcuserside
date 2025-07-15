@@ -37,7 +37,7 @@ export default function NocDataTable({ data }: Props) {
   );
 
   return (
-    <div className="rounded-md border bg-white shadow-md">
+    <div className="rounded-md border bg-white shadow-md overflow-x-auto">
       {/* Search bar */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 border-b">
         <Input
@@ -52,25 +52,25 @@ export default function NocDataTable({ data }: Props) {
       </div>
 
       {/* Table */}
-      <Table>
+      <Table className="w-full table-auto text-sm">
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Registration No.</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Slot</TableHead>
+            <TableHead className="text-center px-2 py-2">Name</TableHead>
+            <TableHead className="text-center px-2 py-2">Registration No.</TableHead>
+            <TableHead className="text-center px-2 py-2">Category</TableHead>
+            <TableHead className="text-center px-2 py-2">Date</TableHead>
+            <TableHead className="text-center px-2 py-2">Slot</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {paginatedData.length > 0 ? (
             paginatedData.map((record) => (
               <TableRow key={record.id}>
-                <TableCell>{record.name}</TableCell>
-                <TableCell>{record.registrationNumber}</TableCell>
-                <TableCell>{record.category}</TableCell>
-                <TableCell>{record.appointmentDate}</TableCell>
-                <TableCell>{record.slot}</TableCell>
+                <TableCell className="text-center px-2 py-2">{record.name}</TableCell>
+                <TableCell className="text-center px-2 py-2">{record.registrationNumber}</TableCell>
+                <TableCell className="text-center px-2 py-2">{record.category}</TableCell>
+                <TableCell className="text-center px-2 py-2">{record.appointmentDate}</TableCell>
+                <TableCell className="text-center px-2 py-2">{record.slot}</TableCell>
               </TableRow>
             ))
           ) : (

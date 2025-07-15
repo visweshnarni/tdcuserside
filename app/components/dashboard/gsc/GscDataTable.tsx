@@ -19,8 +19,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Download } from "lucide-react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Props {
   data: GscRecord[];
@@ -61,7 +60,7 @@ export default function GscDataTable({ data, onEdit }: Props) {
   };
 
   return (
-    <div className="rounded-md border bg-white shadow-md">
+    <div className="rounded-md border bg-white shadow-md overflow-x-auto">
       {/* Filters */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 border-b">
         <Input
@@ -70,7 +69,7 @@ export default function GscDataTable({ data, onEdit }: Props) {
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
-            setCurrentPage(1); // ✅ reset to page 1 on search
+            setCurrentPage(1);
           }}
         />
 
@@ -78,7 +77,7 @@ export default function GscDataTable({ data, onEdit }: Props) {
           value={statusFilter}
           onValueChange={(value) => {
             setStatusFilter(value);
-            setCurrentPage(1); // ✅ reset to page 1 on status change
+            setCurrentPage(1);
           }}
         >
           <SelectTrigger className="w-full md:w-[200px] cursor-pointer">
@@ -94,24 +93,24 @@ export default function GscDataTable({ data, onEdit }: Props) {
       </div>
 
       {/* Table */}
-      <Table>
+      <Table className="w-full table-auto text-sm">
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Application No.</TableHead>
-            <TableHead>Application Date</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Action</TableHead>
+            <TableHead className="text-center px-2 py-2">Name</TableHead>
+            <TableHead className="text-center px-2 py-2">Application No.</TableHead>
+            <TableHead className="text-center px-2 py-2">Application Date</TableHead>
+            <TableHead className="text-center px-2 py-2">Status</TableHead>
+            <TableHead className="text-center px-2 py-2">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {paginatedData.length > 0 ? (
             paginatedData.map((record) => (
               <TableRow key={record.id}>
-                <TableCell>{record.name}</TableCell>
-                <TableCell>{record.applicationNo}</TableCell>
-                <TableCell>{record.applicationDate}</TableCell>
-                <TableCell className="flex items-center gap-2">
+                <TableCell className="text-center px-2 py-2">{record.name}</TableCell>
+                <TableCell className="text-center px-2 py-2">{record.applicationNo}</TableCell>
+                <TableCell className="text-center px-2 py-2">{record.applicationDate}</TableCell>
+                <TableCell className="text-center px-2 py-2">
                   <span
                     className={`text-sm px-3 py-1 rounded-full font-medium ${getStatusClass(
                       record.status ?? ""
@@ -121,7 +120,7 @@ export default function GscDataTable({ data, onEdit }: Props) {
                   </span>
                 </TableCell>
 
-                <TableCell>
+                <TableCell className="text-center px-2 py-2">
                   {record.status === "Pending" && (
                     <Button
                       size="sm"
@@ -137,7 +136,7 @@ export default function GscDataTable({ data, onEdit }: Props) {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="text-sm text-[#00694A] hover:bg-[#00694A] hover:text-[#FFFFFF] border-[#00694A] cursor-pointer ml-10 rounded-full"
+                      className="text-sm text-[#00694A] hover:bg-[#00694A] hover:text-[#FFFFFF] border-[#00694A] cursor-pointer ml-4 rounded-full"
                       onClick={() => {
                         // const url = record.downloadUrl || "/dummy.pdf";
                         // const link = document.createElement("a");

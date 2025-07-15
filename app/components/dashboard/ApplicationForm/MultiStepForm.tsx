@@ -77,7 +77,8 @@ export default function MultiStepForm() {
           exit="exit"
           transition={{ duration: 0.35 }}
         >
-          <div className="w-full max-w-4xl mx-auto bg-[#FFFFFF] rounded-lg shadow-md p-3 sm:p-6 md:p-10 border border-gray-200">
+          <div className="w-full bg-white rounded-lg shadow-md px-4 py-6 sm:px-8 md:px-12 border border-gray-200">
+
             {/* Stepper only shows if not on thank you page */}
             {!(step === 4 && paymentComplete) && (
               <FormStepper currentStep={step} steps={steps} />
