@@ -17,36 +17,39 @@ import { Button } from "@/components/ui/button";
 type FormData = Step1FormValues & Partial<Step2FormValues>;
 
 export default function MultiStepForm() {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState<number>(1);
   const [formData, setFormData] = useState<Partial<FormData>>({});
-  const [paymentComplete, setPaymentComplete] = useState(false);
+  const [paymentComplete, setPaymentComplete] = useState<boolean>(false);
+
   const methods = useForm();
 
   const goNext = (data?: Partial<FormData>) => {
-    if (data) setFormData((prev) => ({ ...prev, ...data }));
-    setStep((prev) => prev + 1);
+    if (data) {
+      setFormData((prev: Partial<FormData>) => ({ ...prev, ...data }));
+    }
+    setStep((prev: number) => prev + 1);
   };
 
-  const goBack = () => setStep((prev) => prev - 1);
+  const goBack = () => {
+    setStep((prev: number) => prev - 1);
+  };
 
   const handlePaymentSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    // ...your payment logic...
     setPaymentComplete(true);
-    // Optionally, you can also setStep(step + 1) if you want to increment step
   };
 
   const handleFileChange = (field: string, file: File) => {
-    setFormData((prev) => ({ ...prev, [field]: file }));
+    setFormData((prev: Partial<FormData>) => ({ ...prev, [field]: file }));
   };
 
   const handleStep1 = (data: Step1FormValues) => {
-    setFormData((prev) => ({ ...prev, ...data }));
+    setFormData((prev: Partial<FormData>) => ({ ...prev, ...data }));
     setStep(2);
   };
 
   const handleStep2 = (data: Partial<Step2FormValues>) => {
-    setFormData((prev) => ({ ...prev, ...data }));
+    setFormData((prev: Partial<FormData>) => ({ ...prev, ...data }));
     setStep(3);
   };
 
@@ -78,13 +81,10 @@ export default function MultiStepForm() {
           transition={{ duration: 0.35 }}
         >
           <div className="w-full bg-white rounded-lg shadow-md px-4 py-6 sm:px-8 md:px-12 border border-gray-200">
-
-            {/* Stepper only shows if not on thank you page */}
             {!(step === 4 && paymentComplete) && (
               <FormStepper currentStep={step} steps={steps} />
             )}
 
-            {/* Step 1: Basic Details */}
             {step === 1 && (
               <BasicDetails
                 onNext={handleStep1}
@@ -93,7 +93,6 @@ export default function MultiStepForm() {
               />
             )}
 
-            {/* Step 2: Upload Details */}
             {step === 2 && (
               <FormProvider {...methods}>
                 <form onSubmit={methods.handleSubmit(handleStep2)}>
@@ -123,7 +122,6 @@ export default function MultiStepForm() {
               </FormProvider>
             )}
 
-            {/* Step 3: Review */}
             {step === 3 && (
               <>
                 <FormReview data={formData} />
@@ -137,7 +135,7 @@ export default function MultiStepForm() {
                   </Button>
                   <Button
                     type="button"
-                    onClick={goNext}
+                    onClick={() => setStep((prev: number) => prev + 1)}
                     className=" bg-[#00694A] hover:bg-[#004d36] text-white"
                   >
                     Next
@@ -146,7 +144,6 @@ export default function MultiStepForm() {
               </>
             )}
 
-            {/* Step 4: Payment */}
             {step === 4 && (
               <FormProvider {...methods}>
                 {!paymentComplete ? (

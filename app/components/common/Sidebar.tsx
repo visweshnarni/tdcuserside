@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 const menuItems = [
 	{ label: 'Application Form', path: '/dashboard/application-form' },
 	{ label: 'Note from Council', path: '/dashboard/note-from-council' },
-	{ label: 'My Profile', path: '/dashboard/profile' },
+	{ label: 'My Profile', path: '/dashboard/myprofile' },
 	{ label: 'My Certificate', path: '/dashboard/certificates' },
 	{ label: 'Renewal', path: '/dashboard/renewal' },
 	{ label: 'Good Standing Certificates', path: '/dashboard/gsc' },
