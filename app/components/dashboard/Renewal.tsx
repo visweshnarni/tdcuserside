@@ -29,13 +29,24 @@ export default function Renewal() {
   const profileData = {
     category: "Bachelor of Dental Surgery (BDS)",
     membershipNumber: "Pending Registration",
-    name: "Anilkumar",
+    name: "Dr. Madishetti Abhilash",
     gender: "Male",
-    fatherName: "Kotaiah",
-    email: "c.anilkumar365@gmail.com",
-    mobile: "8688922018",
+    fatherName: "Madishetti Sathaiah",
+    email: "abhilash.madisetty92@gmail.com",
+    mobile: "7842810845",
     status: "Pending",
   };
+
+  const profileFields = [
+    { label: "Category", value: profileData.category },
+    { label: "Membership Number", value: profileData.membershipNumber },
+    { label: "Name in full", value: profileData.name },
+    { label: "Gender", value: profileData.gender },
+    { label: "Father’s Name", value: profileData.fatherName },
+    { label: "Email ID", value: profileData.email },
+    { label: "Mobile No.", value: profileData.mobile },
+    { label: "Status", value: profileData.status },
+  ];
 
   const methods = useForm<RenewalFormData>({
     resolver: zodResolver(renewalFormSchema),
@@ -45,8 +56,7 @@ export default function Renewal() {
     },
   });
 
-  const { handleSubmit, watch, setValue } = methods;
-
+  const { handleSubmit, watch } = methods;
   const registrationType = watch("registrationType");
   const [fee, setFee] = useState("");
 
@@ -66,40 +76,19 @@ export default function Renewal() {
 
   return (
     <div >
+      {/* Profile Info */}
       <div className="space-y-2 text-sm text-gray-800 mb-8">
-  <div>
-    <span className="font-semibold w-48 inline-block">Category</span> : {profileData.category}
-  </div>
-  <div>
-    <span className="font-semibold w-48 inline-block">Membership Number</span> : {profileData.membershipNumber}
-  </div>
-  <div>
-    <span className="font-semibold w-48 inline-block">Name in full</span> : {profileData.name}
-  </div>
-  <div>
-    <span className="font-semibold w-48 inline-block">Gender</span> : {profileData.gender}
-  </div>
-  <div>
-    <span className="font-semibold w-48 inline-block">Father’s Name</span> : {profileData.fatherName}
-  </div>
-  <div>
-    <span className="font-semibold w-48 inline-block">Email ID</span> : {profileData.email}
-  </div>
-  <div>
-    <span className="font-semibold w-48 inline-block">Mobile No.</span> : {profileData.mobile}
-  </div>
-  <div>
-    <span className="font-semibold w-48 inline-block">Status</span> : {profileData.status}
-  </div>
-</div>
-
-
+        {profileFields.map((item, index) => (
+          <div key={index}>
+            <span className="font-semibold w-48 inline-block">{item.label}</span> : {item.value}
+          </div>
+        ))}
+      </div>
 
       {/* Form */}
       <FormProvider {...methods}>
         <Form {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* No of Years to Renew */}
             <FormField
               name="yearsToRenew"
@@ -115,11 +104,11 @@ export default function Renewal() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                       <SelectItem value="1">1 Year (2025)</SelectItem>
-          <SelectItem value="2">2 Years (2025 & 2024)</SelectItem>
-          <SelectItem value="3">3 Years (2023, 2024 & 2025)</SelectItem>
-          <SelectItem value="4">4 Years (2022, 2023, 2024 & 2025)</SelectItem>
-          <SelectItem value="5">5 Years (2021, 2022, 2023, 2024 & 2025)</SelectItem>
+                      <SelectItem value="1">1 Year (2025)</SelectItem>
+                      <SelectItem value="2">2 Years (2025 & 2024)</SelectItem>
+                      <SelectItem value="3">3 Years (2023, 2024 & 2025)</SelectItem>
+                      <SelectItem value="4">4 Years (2022, 2023, 2024 & 2025)</SelectItem>
+                      <SelectItem value="5">5 Years (2021, 2022, 2023, 2024 & 2025)</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -142,8 +131,8 @@ export default function Renewal() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="regular">Regular(By Post - Fee includes postal charges)</SelectItem>
-                      <SelectItem value="tatkal">Tatkal (By Hand)</SelectItem>
+                      <SelectItem value="regular">Regular</SelectItem>
+                      <SelectItem value="tatkal">Tatkal</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -205,11 +194,11 @@ export default function Renewal() {
               )}
             />
 
-            {/* Submit Button */}
+            {/* Submit */}
             <div className="pt-4">
               <Button
                 type="submit"
-                className="bg-[#00c084] hover:bg-[#00a06e] text-white w-full"
+                className="bg-[#00694A] hover:bg-[#004d36] text-white w-full"
               >
                 Renew Now
               </Button>
