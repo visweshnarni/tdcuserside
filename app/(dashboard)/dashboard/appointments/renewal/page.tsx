@@ -1,10 +1,10 @@
 "use client";
 
-import Noc from "@/app/components/dashboard/Appointment/noc/noc";
-import { NocRecord } from "@/app/types/appointments/noc";
+import Ren from "@/app/components/dashboard/Appointment/renewal/renewal";
+import { RenRecord } from "@/app/types/appointments/ren";
 
-const dummyData: NocRecord[] = [
-  {
+const dummyData: RenRecord[] = [
+ {
     id: "1",
     name: "Dr. Anjali Rao",
     registrationNumber: "TS123456",
@@ -23,5 +23,5 @@ const dummyData: NocRecord[] = [
 ];
 
 export default function Page() {
-  return <Noc initialData={dummyData} />;
+  return <Ren initialData={dummyData} />;
 }

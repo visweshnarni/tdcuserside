@@ -18,13 +18,13 @@ const menuItems = [
 		label: 'Appointment',
 		isDropdown: true,
 		children: [
-			{ label: 'Registration', path: '/dashboard/appointment/registration' },
-			{ label: 'Renewal (Tatkal)', path: '/dashboard/appointment/renewal-tatkal' },
+			{ label: 'Registration', path: '/dashboard/appointments/registration' },
+			{ label: 'Renewal (Tatkal)', path: '/dashboard/appointments/renewal' },
 			{ label: 'Good Standing Certificates', path: '/dashboard/appointments/gsc' },
 			{ label: 'No Objection Certificate', path: '/dashboard/appointments/noc' },
 		],
 	},
-	{ label: 'Payments', path: '/dashboard/payments' },
+	{ label: 'Payments', path: '/dashboard/payment' },
 	{ label: 'Announcements', path: '/dashboard/announcements' },
 	{ label: 'Events', path: '/dashboard/events' },
 ];

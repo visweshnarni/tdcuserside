@@ -94,7 +94,7 @@ export default function Profile() {
                   </span>
                   {editableLabels.includes(label) && (
                     <button
-                      className="text-gray-500 hover:text-gray-700 ml-2"
+                      className="text-blue-600 hover:text-blue-800 ml-2"
                       onClick={() => handleEditClick(label, value)}
                     >
                       <Pencil className="w-4 h-4" />

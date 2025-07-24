@@ -10,10 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { gscFormSchema, GscFormData } from "@/lib/appointments/gscFormSchema";
-import { GscRecord } from "@/app/types/appointments/gsc";
+import { RegFormSchema, RegFormData } from "@/lib/appointments/regFormSchema";
+import { RegRecord } from "@/app/types/appointments/reg";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import {
   Popover,
   PopoverContent,
@@ -27,16 +28,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useEffect, useState } from "react";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: GscRecord) => void;
-  doctor: Pick<GscRecord, "name" | "registrationNumber" | "category">;
+  onSubmit: (data: RegRecord) => void;
+  doctor: Pick<RegRecord, "name" | "registrationNumber" | "category">;
 }
 
-// Slots with catId for filtering
+// Sample slots — this is your data grouped by catId
 const allSlots = [
   { id: 1, name: "10:30 AM to 10:35 AM", catId: 1 },
   { id: 2, name: "10:35 AM to 10:40 AM", catId: 1 },
@@ -91,23 +91,19 @@ const allSlots = [
   { id: 51, name: "3:30 PM to 3:35 PM", catId: 2 },
   { id: 52, name: "3:35 PM to 3:40 PM", catId: 2 },
   { id: 53, name: "3:40 PM to 3:45 PM", catId: 2 },
-  { id: 54, name: "3:45 PM to 3:50 PM", catId: 2 },
+  { id: 54, name: "3:45 PM to 3:50 PM", catId: 2 }
 ];
 
-export default function GscFormDrawer({
-  open,
-  onClose,
-  onSubmit,
-  doctor,
-}: Props) {
+
+export default function RegFormDrawer({ open, onClose, onSubmit, doctor }: Props) {
   const {
     handleSubmit,
     setValue,
     watch,
     reset,
     formState: { errors },
-  } = useForm<GscFormData>({
-    resolver: zodResolver(gscFormSchema),
+  } = useForm<RegFormData>({
+    resolver: zodResolver(RegFormSchema),
     defaultValues: {
       appointmentDate: undefined,
       slot: "",
@@ -115,6 +111,7 @@ export default function GscFormDrawer({
   });
 
   const [session, setSession] = useState<"Morning" | "Afternoon" | "">("");
+
   const appointmentDate = watch("appointmentDate");
 
   useEffect(() => {
@@ -124,12 +121,8 @@ export default function GscFormDrawer({
     }
   }, [open, reset]);
 
-  const filteredSlots = allSlots.filter((slot) =>
-    session === "Morning" ? slot.catId === 1 : session === "Afternoon" ? slot.catId === 2 : false
-  );
-
-  const submitHandler = (data: GscFormData) => {
-    const newRecord: GscRecord = {
+  const submitHandler = (data: RegFormData) => {
+    const newRecord: RegRecord = {
       id: Date.now().toString(),
       name: doctor.name,
       registrationNumber: doctor.registrationNumber,
@@ -142,6 +135,10 @@ export default function GscFormDrawer({
     onSubmit(newRecord);
     onClose();
   };
+
+  const filteredSlots = allSlots.filter((slot) =>
+    session === "Morning" ? slot.catId === 1 : session === "Afternoon" ? slot.catId === 2 : false
+  );
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
@@ -159,7 +156,7 @@ export default function GscFormDrawer({
           onSubmit={handleSubmit(submitHandler)}
           className="grid grid-cols-1 gap-6 px-6 pt-6 pb-10"
         >
-          {/* Doctor Name */}
+          {/* Doctor Name (Read-only) */}
           <div>
             <Label className="block mb-2 text-sm font-medium text-gray-700">
               Doctor Name
@@ -192,7 +189,11 @@ export default function GscFormDrawer({
                 <Calendar
                   mode="single"
                   selected={appointmentDate}
-                  onSelect={(date) => date && setValue("appointmentDate", date)}
+                  onSelect={(date) => {
+                    if (date) {
+                      setValue("appointmentDate", date);
+                    }
+                  }}
                   initialFocus
                 />
               </PopoverContent>
@@ -204,7 +205,7 @@ export default function GscFormDrawer({
             )}
           </div>
 
-          {/* Session */}
+          {/* Session Selection */}
           <div>
             <Label className="block mb-2">
               Session <span className="text-red-600">*</span>
@@ -213,7 +214,7 @@ export default function GscFormDrawer({
               value={session}
               onValueChange={(value) => {
                 setSession(value as "Morning" | "Afternoon");
-                setValue("slot", "");
+                setValue("slot", ""); // Reset previously selected slot
               }}
             >
               <SelectTrigger className="w-full">
@@ -253,7 +254,7 @@ export default function GscFormDrawer({
             </div>
           )}
 
-          {/* Footer Buttons */}
+          {/* Buttons */}
           <div className="fixed bottom-0 w-full sm:max-w-[50vw] bg-white border-t border-[#004d36]/20 p-10 py-4 flex justify-between items-center">
             <Button
               variant="outline"

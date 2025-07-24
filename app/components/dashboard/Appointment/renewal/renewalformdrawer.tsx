@@ -10,10 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { gscFormSchema, GscFormData } from "@/lib/appointments/gscFormSchema";
-import { GscRecord } from "@/app/types/appointments/gsc";
+import { RenFormSchema, RenFormData } from "@/lib/appointments/renFormSchema";
+import { RenRecord } from "@/app/types/appointments/ren";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import {
   Popover,
   PopoverContent,
@@ -27,16 +28,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useEffect, useState } from "react";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: GscRecord) => void;
-  doctor: Pick<GscRecord, "name" | "registrationNumber" | "category">;
+  onSubmit: (data: RenRecord) => void;
+  doctor: Pick<RenRecord, "name" | "registrationNumber" | "category">;
 }
 
-// Slots with catId for filtering
+// Inline slot list grouped by catId (1 = Morning, 2 = Afternoon)
 const allSlots = [
   { id: 1, name: "10:30 AM to 10:35 AM", catId: 1 },
   { id: 2, name: "10:35 AM to 10:40 AM", catId: 1 },
@@ -94,7 +94,7 @@ const allSlots = [
   { id: 54, name: "3:45 PM to 3:50 PM", catId: 2 },
 ];
 
-export default function GscFormDrawer({
+export default function RenFormDrawer({
   open,
   onClose,
   onSubmit,
@@ -106,8 +106,8 @@ export default function GscFormDrawer({
     watch,
     reset,
     formState: { errors },
-  } = useForm<GscFormData>({
-    resolver: zodResolver(gscFormSchema),
+  } = useForm<RenFormData>({
+    resolver: zodResolver(RenFormSchema),
     defaultValues: {
       appointmentDate: undefined,
       slot: "",
@@ -115,6 +115,7 @@ export default function GscFormDrawer({
   });
 
   const [session, setSession] = useState<"Morning" | "Afternoon" | "">("");
+
   const appointmentDate = watch("appointmentDate");
 
   useEffect(() => {
@@ -128,8 +129,8 @@ export default function GscFormDrawer({
     session === "Morning" ? slot.catId === 1 : session === "Afternoon" ? slot.catId === 2 : false
   );
 
-  const submitHandler = (data: GscFormData) => {
-    const newRecord: GscRecord = {
+  const submitHandler = (data: RenFormData) => {
+    const newRecord: RenRecord = {
       id: Date.now().toString(),
       name: doctor.name,
       registrationNumber: doctor.registrationNumber,
@@ -151,7 +152,7 @@ export default function GscFormDrawer({
       >
         <SheetHeader>
           <SheetTitle className="text-2xl font-francois-one text-[#00694A] text-center mt-8">
-            Book Appointment
+            Book Renewal Appointment
           </SheetTitle>
         </SheetHeader>
 
@@ -192,7 +193,11 @@ export default function GscFormDrawer({
                 <Calendar
                   mode="single"
                   selected={appointmentDate}
-                  onSelect={(date) => date && setValue("appointmentDate", date)}
+                  onSelect={(date) => {
+                    if (date) {
+                      setValue("appointmentDate", date);
+                    }
+                  }}
                   initialFocus
                 />
               </PopoverContent>
@@ -204,7 +209,7 @@ export default function GscFormDrawer({
             )}
           </div>
 
-          {/* Session */}
+          {/* Session Selection */}
           <div>
             <Label className="block mb-2">
               Session <span className="text-red-600">*</span>
@@ -213,7 +218,7 @@ export default function GscFormDrawer({
               value={session}
               onValueChange={(value) => {
                 setSession(value as "Morning" | "Afternoon");
-                setValue("slot", "");
+                setValue("slot", ""); // Reset previous slot
               }}
             >
               <SelectTrigger className="w-full">
@@ -253,19 +258,19 @@ export default function GscFormDrawer({
             </div>
           )}
 
-          {/* Footer Buttons */}
+          {/* Buttons */}
           <div className="fixed bottom-0 w-full sm:max-w-[50vw] bg-white border-t border-[#004d36]/20 p-10 py-4 flex justify-between items-center">
             <Button
               variant="outline"
               type="button"
               onClick={onClose}
-              className="text-[#6b0000] border-[#6b0000] hover:bg-[#6b0000] hover:text-white cursor-pointer px-10"
+              className="text-[#6b0000] border-[#6b0000] hover:bg-[#6b0000] hover:text-white px-10"
             >
               Close
             </Button>
             <Button
               type="submit"
-              className="bg-[#00694A] hover:bg-[#004d36] text-white cursor-pointer"
+              className="bg-[#00694A] hover:bg-[#004d36] text-white"
             >
               Book
             </Button>
