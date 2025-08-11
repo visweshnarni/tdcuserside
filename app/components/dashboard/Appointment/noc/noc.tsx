@@ -49,7 +49,7 @@ export default function Noc({ initialData }: NocProps) {
           className="bg-[#00694A] hover:bg-[#004d36] text-white"
         >
           <PlusCircle className="mr-2 h-4 w-4" />
-          Book Appointment
+          Book NOC Appointment
         </Button>
       </div>
 
