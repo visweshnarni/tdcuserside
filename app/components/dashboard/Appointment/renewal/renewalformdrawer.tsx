@@ -1,5 +1,8 @@
 "use client";
 
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Sheet,
   SheetContent,
@@ -8,13 +11,8 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { RenFormSchema, RenFormData } from "@/lib/appointments/renFormSchema";
-import { RenRecord } from "@/app/types/appointments/ren";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { useEffect, useState } from "react";
 import {
   Popover,
   PopoverContent,
@@ -28,6 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RenFormSchema, RenFormData } from "@/lib/appointments/renFormSchema";
+import { RenRecord } from "@/app/types/appointments/ren";
 
 interface Props {
   open: boolean;
@@ -38,33 +38,7 @@ interface Props {
 
 // Inline slot list grouped by catId (1 = Morning, 2 = Afternoon)
 const allSlots = [
-  { id: 1, name: "10:30 AM to 10:35 AM", catId: 1 },
-  { id: 2, name: "10:35 AM to 10:40 AM", catId: 1 },
-  { id: 3, name: "10:40 AM to 10:45 AM", catId: 1 },
-  { id: 4, name: "10:45 AM to 10:50 AM", catId: 1 },
-  { id: 5, name: "10:50 AM to 10:55 AM", catId: 1 },
-  { id: 6, name: "10:55 AM to 11:00 AM", catId: 1 },
-  { id: 7, name: "11:00 AM to 11:05 AM", catId: 1 },
-  { id: 8, name: "11:05 AM to 11:10 AM", catId: 1 },
-  { id: 9, name: "11:10 AM to 11:15 AM", catId: 1 },
-  { id: 10, name: "11:15 AM to 11:20 AM", catId: 1 },
-  { id: 11, name: "11:20 AM to 11:25 AM", catId: 1 },
-  { id: 12, name: "11:25 AM to 11:30 AM", catId: 1 },
-  { id: 13, name: "11:30 AM to 11:35 AM", catId: 1 },
-  { id: 14, name: "11:35 AM to 11:40 AM", catId: 1 },
-  { id: 15, name: "11:40 AM to 11:45 AM", catId: 1 },
-  { id: 16, name: "11:45 AM to 11:50 AM", catId: 1 },
-  { id: 17, name: "11:50 AM to 11:55 AM", catId: 1 },
-  { id: 18, name: "12:00 PM to 12:05 PM", catId: 1 },
-  { id: 19, name: "12:05 PM to 12:10 PM", catId: 1 },
-  { id: 20, name: "12:10 PM to 12:15 PM", catId: 1 },
-  { id: 21, name: "12:15 PM to 12:20 PM", catId: 1 },
-  { id: 22, name: "12:20 PM to 12:25 PM", catId: 1 },
-  { id: 23, name: "12:25 PM to 12:30 PM", catId: 1 },
-  { id: 24, name: "12:30 PM to 12:35 PM", catId: 1 },
-  { id: 25, name: "12:35 PM to 12:40 PM", catId: 1 },
-  { id: 26, name: "12:40 PM to 12:45 PM", catId: 1 },
-  { id: 27, name: "12:45 PM to 12:50 PM", catId: 1 },
+  
   { id: 28, name: "1:30 PM to 1:40 PM", catId: 2 },
   { id: 29, name: "1:40 PM to 1:45 PM", catId: 2 },
   { id: 30, name: "1:45 PM to 1:50 PM", catId: 2 },
@@ -92,6 +66,15 @@ const allSlots = [
   { id: 52, name: "3:35 PM to 3:40 PM", catId: 2 },
   { id: 53, name: "3:40 PM to 3:45 PM", catId: 2 },
   { id: 54, name: "3:45 PM to 3:50 PM", catId: 2 },
+  // ADDED: New afternoon slots up to 4:30 PM
+  { id: 55, name: "3:50 PM to 3:55 PM", catId: 2 },
+  { id: 56, name: "3:55 PM to 4:00 PM", catId: 2 },
+  { id: 57, name: "4:00 PM to 4:05 PM", catId: 2 },
+  { id: 58, name: "4:05 PM to 4:10 PM", catId: 2 },
+  { id: 59, name: "4:10 PM to 4:15 PM", catId: 2 },
+  { id: 60, name: "4:15 PM to 4:20 PM", catId: 2 },
+  { id: 61, name: "4:20 PM to 4:25 PM", catId: 2 },
+  { id: 62, name: "4:25 PM to 4:30 PM", catId: 2 },
 ];
 
 export default function RenFormDrawer({
@@ -114,20 +97,16 @@ export default function RenFormDrawer({
     },
   });
 
-  const [session, setSession] = useState<"Morning" | "Afternoon" | "">("");
-
   const appointmentDate = watch("appointmentDate");
 
   useEffect(() => {
     if (open) {
       reset();
-      setSession("");
     }
   }, [open, reset]);
 
-  const filteredSlots = allSlots.filter((slot) =>
-    session === "Morning" ? slot.catId === 1 : session === "Afternoon" ? slot.catId === 2 : false
-  );
+  // UPDATED: Filter only afternoon slots
+  const filteredSlots = allSlots.filter((slot) => slot.catId === 2);
 
   const submitHandler = (data: RenFormData) => {
     const newRecord: RenRecord = {
@@ -209,54 +188,30 @@ export default function RenFormDrawer({
             )}
           </div>
 
-          {/* Session Selection */}
+          {/* Slot Dropdown */}
           <div>
             <Label className="block mb-2">
-              Session <span className="text-red-600">*</span>
+              Select Slot <span className="text-red-600">*</span>
             </Label>
             <Select
-              value={session}
-              onValueChange={(value) => {
-                setSession(value as "Morning" | "Afternoon");
-                setValue("slot", ""); // Reset previous slot
-              }}
+              value={watch("slot")}
+              onValueChange={(value) => setValue("slot", value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose session" />
+                <SelectValue placeholder="Choose slot" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Morning">Morning</SelectItem>
-                <SelectItem value="Afternoon">Afternoon</SelectItem>
+                {filteredSlots.map((slot) => (
+                  <SelectItem key={slot.id} value={slot.name}>
+                    {slot.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            {errors.slot && (
+              <p className="text-sm text-red-600 mt-1">{errors.slot.message}</p>
+            )}
           </div>
-
-          {/* Slot Dropdown */}
-          {session && (
-            <div>
-              <Label className="block mb-2">
-                Select Slot <span className="text-red-600">*</span>
-              </Label>
-              <Select
-                value={watch("slot")}
-                onValueChange={(value) => setValue("slot", value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Choose slot" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredSlots.map((slot) => (
-                    <SelectItem key={slot.id} value={slot.name}>
-                      {slot.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.slot && (
-                <p className="text-sm text-red-600 mt-1">{errors.slot.message}</p>
-              )}
-            </div>
-          )}
 
           {/* Buttons */}
           <div className="fixed bottom-0 w-full sm:max-w-[50vw] bg-white border-t border-[#004d36]/20 p-10 py-4 flex justify-between items-center">

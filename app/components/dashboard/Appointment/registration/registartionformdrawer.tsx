@@ -1,5 +1,8 @@
 "use client";
 
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Sheet,
   SheetContent,
@@ -8,13 +11,8 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { RegFormSchema, RegFormData } from "@/lib/appointments/regFormSchema";
-import { RegRecord } from "@/app/types/appointments/reg";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { useEffect, useState } from "react";
 import {
   Popover,
   PopoverContent,
@@ -28,6 +26,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+import { RegFormSchema, RegFormData } from "@/lib/appointments/regFormSchema";
+import { RegRecord } from "@/app/types/appointments/reg";
 
 interface Props {
   open: boolean;
@@ -65,33 +66,7 @@ const allSlots = [
   { id: 25, name: "12:35 PM to 12:40 PM", catId: 1 },
   { id: 26, name: "12:40 PM to 12:45 PM", catId: 1 },
   { id: 27, name: "12:45 PM to 12:50 PM", catId: 1 },
-  { id: 28, name: "1:30 PM to 1:40 PM", catId: 2 },
-  { id: 29, name: "1:40 PM to 1:45 PM", catId: 2 },
-  { id: 30, name: "1:45 PM to 1:50 PM", catId: 2 },
-  { id: 31, name: "1:50 PM to 1:55 PM", catId: 2 },
-  { id: 32, name: "1:55 PM to 2:00 PM", catId: 2 },
-  { id: 33, name: "2:00 PM to 2:05 PM", catId: 2 },
-  { id: 34, name: "2:05 PM to 2:10 PM", catId: 2 },
-  { id: 35, name: "2:10 PM to 2:15 PM", catId: 2 },
-  { id: 36, name: "2:15 PM to 2:20 PM", catId: 2 },
-  { id: 37, name: "2:20 PM to 2:25 PM", catId: 2 },
-  { id: 38, name: "2:25 PM to 2:30 PM", catId: 2 },
-  { id: 39, name: "2:30 PM to 2:35 PM", catId: 2 },
-  { id: 40, name: "2:35 PM to 2:40 PM", catId: 2 },
-  { id: 41, name: "2:40 PM to 2:45 PM", catId: 2 },
-  { id: 42, name: "2:45 PM to 2:50 PM", catId: 2 },
-  { id: 43, name: "2:50 PM to 2:55 PM", catId: 2 },
-  { id: 44, name: "2:55 PM to 3:00 PM", catId: 2 },
-  { id: 45, name: "3:00 PM to 3:05 PM", catId: 2 },
-  { id: 46, name: "3:05 PM to 3:10 PM", catId: 2 },
-  { id: 47, name: "3:10 PM to 3:15 PM", catId: 2 },
-  { id: 48, name: "3:15 PM to 3:20 PM", catId: 2 },
-  { id: 49, name: "3:20 PM to 3:25 PM", catId: 2 },
-  { id: 50, name: "3:25 PM to 3:30 PM", catId: 2 },
-  { id: 51, name: "3:30 PM to 3:35 PM", catId: 2 },
-  { id: 52, name: "3:35 PM to 3:40 PM", catId: 2 },
-  { id: 53, name: "3:40 PM to 3:45 PM", catId: 2 },
-  { id: 54, name: "3:45 PM to 3:50 PM", catId: 2 }
+  
 ];
 
 
@@ -110,14 +85,11 @@ export default function RegFormDrawer({ open, onClose, onSubmit, doctor }: Props
     },
   });
 
-  const [session, setSession] = useState<"Morning" | "Afternoon" | "">("");
-
   const appointmentDate = watch("appointmentDate");
 
   useEffect(() => {
     if (open) {
       reset();
-      setSession("");
     }
   }, [open, reset]);
 
@@ -136,9 +108,8 @@ export default function RegFormDrawer({ open, onClose, onSubmit, doctor }: Props
     onClose();
   };
 
-  const filteredSlots = allSlots.filter((slot) =>
-    session === "Morning" ? slot.catId === 1 : session === "Afternoon" ? slot.catId === 2 : false
-  );
+  // CORRECTED: Filter allSlots to only include morning slots (catId === 1)
+  const filteredSlots = allSlots.filter((slot) => slot.catId === 1);
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
@@ -205,54 +176,30 @@ export default function RegFormDrawer({ open, onClose, onSubmit, doctor }: Props
             )}
           </div>
 
-          {/* Session Selection */}
+          {/* Slot Dropdown (Simplified) */}
           <div>
             <Label className="block mb-2">
-              Session <span className="text-red-600">*</span>
+              Select Slot <span className="text-red-600">*</span>
             </Label>
             <Select
-              value={session}
-              onValueChange={(value) => {
-                setSession(value as "Morning" | "Afternoon");
-                setValue("slot", ""); // Reset previously selected slot
-              }}
+              value={watch("slot")}
+              onValueChange={(value) => setValue("slot", value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose session" />
+                <SelectValue placeholder="Choose slot" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Morning">Morning</SelectItem>
-                <SelectItem value="Afternoon">Afternoon</SelectItem>
+                {filteredSlots.map((slot) => (
+                  <SelectItem key={slot.id} value={slot.name}>
+                    {slot.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            {errors.slot && (
+              <p className="text-sm text-red-600 mt-1">{errors.slot.message}</p>
+            )}
           </div>
-
-          {/* Slot Dropdown */}
-          {session && (
-            <div>
-              <Label className="block mb-2">
-                Select Slot <span className="text-red-600">*</span>
-              </Label>
-              <Select
-                value={watch("slot")}
-                onValueChange={(value) => setValue("slot", value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Choose slot" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredSlots.map((slot) => (
-                    <SelectItem key={slot.id} value={slot.name}>
-                      {slot.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.slot && (
-                <p className="text-sm text-red-600 mt-1">{errors.slot.message}</p>
-              )}
-            </div>
-          )}
 
           {/* Buttons */}
           <div className="fixed bottom-0 w-full sm:max-w-[50vw] bg-white border-t border-[#004d36]/20 p-10 py-4 flex justify-between items-center">

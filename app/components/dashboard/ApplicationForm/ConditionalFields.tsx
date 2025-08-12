@@ -170,14 +170,15 @@ const ConditionalFields: React.FC<ConditionalFieldsProps> = ({
     />
   );
 
-  const pdfField = (name: string, label: string) => (
+  // UPDATED: Added an optional 'isMandatory' parameter to control the asterisk
+  const pdfField = (name: string, label: string, isMandatory = true) => (
     <FormField
       key={name}
       name={name}
       render={({ field }) => (
         <FormItem>
           <FormLabel>
-            {label} <span className="text-red-500">*</span>
+            {label} {isMandatory && <span className="text-red-500">*</span>}
           </FormLabel>
           <FormControl>
             <Input
@@ -205,7 +206,7 @@ const ConditionalFields: React.FC<ConditionalFieldsProps> = ({
         "Upload College Bonafide Certificate (PR)"
       ),
       pdfField("ssc_memo", "SSC Marks Memo"),
-      pdfField("custodian_clg", "College Custodian"),
+      pdfField("custodian_clg", "College Custodian", false), // UPDATED: Now optional
     ],
 
     "Bachelor of Dental Surgery (BDS) from Telangana": [
@@ -231,49 +232,48 @@ const ConditionalFields: React.FC<ConditionalFieldsProps> = ({
       ),
       pdfField("bds_degree_upload", "Degree Certificate/s (BDS)"),
       pdfField("study_upload", "Study/Conduct/Attempt Certificate"),
-      pdfField("intern_upload", "Internship Certificate"),
+      pdfField("intern_upload", "Internship Certificate", false), // UPDATED: Now optional
       pdfField(
         "pr_certificate_upload",
         "TDC Provisional Registration Certificate"
       ),
-      pdfField("bds_affidavit_upload", "Affidavit"),
+      pdfField("bds_affidavit_upload", "Affidavit", false), // UPDATED: Now optional
       pdfField("ssc_memo", "SSC Marks Memo"),
-      pdfField("custodian_clg", "College Custodian"),
+      pdfField("custodian_clg", "College Custodian", false), // UPDATED: Now optional
     ],
 
-    "Transfer BDS (BDS registrant - from other state dental councils in India)":
-      [
-        textField(
-          "professional_address",
-          "Professional Address (for Clinicians)"
-        ),
-        textareaField(
-          "qualification_description",
-          "Description of Qualification/s"
-        ),
-        textField(
-          "bds_university_address",
-          "Name & address of the University (BDS)"
-        ),
-        monthYearField(
-          "bds_qualification_year",
-          "Month & year of attaining the Qualification (BDS)"
-        ),
-        textField(
-          "bds_clg_address",
-          "Name & Address of College/Institution (BDS)"
-        ),
-        pdfField("bds_degree_upload", "Degree Certificate/s (BDS)"),
-        pdfField("study_upload", "Study/Conduct/Attempt Certificate"),
-        pdfField("intern_upload", "Internship Certificate"),
-        pdfField(
-          "pr_certificate_upload",
-          "TDC Provisional Registration Certificate"
-        ),
-        pdfField("bds_affidavit_upload", "Affidavit"),
-        pdfField("ssc_memo", "SSC Marks Memo"),
-        pdfField("custodian_clg", "College Custodian"),
-      ],
+    "Transfer BDS (BDS registrant - from other state dental councils in India)": [
+      textField(
+        "professional_address",
+        "Professional Address (for Clinicians)"
+      ),
+      textareaField(
+        "qualification_description",
+        "Description of Qualification/s"
+      ),
+      textField(
+        "bds_university_address",
+        "Name & address of the University (BDS)"
+      ),
+      monthYearField(
+        "bds_qualification_year",
+        "Month & year of attaining the Qualification (BDS)"
+      ),
+      textField(
+        "bds_clg_address",
+        "Name & Address of College/Institution (BDS)"
+      ),
+      pdfField("bds_degree_upload", "Degree Certificate/s (BDS)"),
+      pdfField("study_upload", "Study/Conduct/Attempt Certificate"),
+      pdfField("intern_upload", "Internship Certificate", false), // UPDATED: Now optional
+      pdfField(
+        "pr_certificate_upload",
+        "TDC Provisional Registration Certificate"
+      ),
+      pdfField("bds_affidavit_upload", "Affidavit", false), // UPDATED: Now optional
+      pdfField("ssc_memo", "SSC Marks Memo"),
+      pdfField("custodian_clg", "College Custodian", false), // UPDATED: Now optional
+    ],
 
     "Transfer BDS + New MDS": [
       dropdownField(
@@ -302,15 +302,15 @@ const ConditionalFields: React.FC<ConditionalFieldsProps> = ({
         "Name & Address of College/Institution (BDS)"
       ),
       pdfField("bds_degree_upload", "Degree Certificate/s (BDS)"),
-      pdfField("study_upload", "Study/Conduct/Attempt Certificate"),
-      pdfField("intern_upload", "Internship Certificate"),
+      pdfField("study_upload", "Study/Conduct Certificate"),
+      pdfField("intern_upload", "Internship Certificate", false), // UPDATED: Now optional
       pdfField(
         "pr_certificate_upload",
         "TDC Provisional Registration Certificate"
       ),
-      pdfField("bds_affidavit_upload", "Affidavit"),
+      pdfField("bds_affidavit_upload", "Affidavit", false), // UPDATED: Now optional
       pdfField("ssc_memo", "SSC Marks Memo"),
-      pdfField("custodian_clg", "College Custodian"),
+      pdfField("custodian_clg", "College Custodian", false), // UPDATED: Now optional
 
       textField(
         "mds_university_address",
@@ -329,38 +329,37 @@ const ConditionalFields: React.FC<ConditionalFieldsProps> = ({
       pdfField("tdc_reg_upload", "TDC Registration Certificate"),
       pdfField("noc_dci_upload", "NOC of DCI"),
       pdfField("noc_state_upload", "NOC from Transferor State Dental Council"),
-      pdfField("mds_affidavit_upload", "MDS Affidavit"),
+      pdfField("mds_affidavit_upload", "MDS Affidavit", false), // UPDATED: Now optional
     ],
 
-    "Transfer MDS (MDS registrant - from other state dental councils in India)":
-      [
-        dropdownField(
-          "pg_speciality",
-          "PG / MDS Specialities",
-          pgSpecialityOptions
-        ),
-        textField(
-          "mds_university_address",
-          "Name & address of the University (MDS)"
-        ),
-        monthYearField(
-          "mds_qualification_year",
-          "Month & year of attaining the Qualification (MDS)"
-        ),
-        textField(
-          "mds_clg_address",
-          "Name & Address of College/Institution (MDS)"
-        ),
-        pdfField("mds_degree_upload", "Degree Certificate/s (MDS)"),
-        pdfField("mds_marks_upload", "College Bonafide/Marks Memo (MDS)"),
-        pdfField("noc_dci_upload", "NOC of DCI"),
-        pdfField(
-          "noc_state_upload",
-          "NOC from Transferor State Dental Council"
-        ),
-        pdfField("ssc_memo", "SSC Marks Memo"),
-        pdfField("custodian_clg", "College Custodian"),
-      ],
+    "Transfer MDS (MDS registrant - from other state dental councils in India)": [
+      dropdownField(
+        "pg_speciality",
+        "PG / MDS Specialities",
+        pgSpecialityOptions
+      ),
+      textField(
+        "mds_university_address",
+        "Name & address of the University (MDS)"
+      ),
+      monthYearField(
+        "mds_qualification_year",
+        "Month & year of attaining the Qualification (MDS)"
+      ),
+      textField(
+        "mds_clg_address",
+        "Name & Address of College/Institution (MDS)"
+      ),
+      pdfField("mds_degree_upload", "Degree Certificate/s (MDS)"),
+      pdfField("mds_marks_upload", "College Bonafide/Marks Memo (MDS)"),
+      pdfField("noc_dci_upload", "NOC of DCI"),
+      pdfField(
+        "noc_state_upload",
+        "NOC from Transferor State Dental Council"
+      ),
+      pdfField("ssc_memo", "SSC Marks Memo"),
+      pdfField("custodian_clg", "College Custodian", false), // UPDATED: Now optional
+    ],
 
     "Master of Dental Surgery (MDS) from Telangana": [
       dropdownField(
@@ -368,7 +367,7 @@ const ConditionalFields: React.FC<ConditionalFieldsProps> = ({
         "PG / MDS Specialities",
         pgSpecialityOptions
       ),
-      pdfField("mds_affidavit_upload", "Upload MDS Affidavit"),
+      pdfField("mds_affidavit_upload", "Upload MDS Affidavit", false), // UPDATED: Now optional
       textField(
         "bds_university_address",
         "Name & address of the University (BDS)"
@@ -385,8 +384,8 @@ const ConditionalFields: React.FC<ConditionalFieldsProps> = ({
         "bds_degree_upload",
         "Provisional/Permanent Degree Certificate/s (BDS)"
       ),
-      pdfField("study_upload", "Study or Conduct or Attempt certificate"),
-      pdfField("intern_upload", "Internship Certificate"),
+      pdfField("study_upload", "Study or Conduct certificate"),
+      pdfField("intern_upload", "Internship Certificate", false), // UPDATED: Now optional
 
       textField(
         "mds_university_address",
@@ -408,7 +407,7 @@ const ConditionalFields: React.FC<ConditionalFieldsProps> = ({
         "mds_marks_upload",
         "College Bonafide Certificate/ Marks memo (MDS)"
       ),
-      pdfField("custodian_clg", "College Custodian"),
+      pdfField("custodian_clg", "College Custodian", false), // UPDATED: Now optional
       pdfField(
         "tsdc_reg_upload",
         "Upload (Currently Holding) TSDC Registration Certificate"
@@ -448,12 +447,10 @@ const ConditionalFields: React.FC<ConditionalFieldsProps> = ({
   };
 
   return registrationCategory && fields[registrationCategory] ? (
-    // <div className="bg-white p-6 md:p-10 mt-6 rounded-lg shadow-md border border-gray-200">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {fields[registrationCategory]}
     </div>
-  ) : // </div>
-  null;
+  ) : null;
 };
 
 export default ConditionalFields;
