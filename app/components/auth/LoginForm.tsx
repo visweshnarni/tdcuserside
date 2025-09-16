@@ -1,10 +1,10 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import ReCAPTCHA from "react-google-recaptcha";
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import ReCAPTCHA from 'react-google-recaptcha'
 
 type LoginData = {
   email: string;
@@ -12,21 +12,66 @@ type LoginData = {
 };
 
 export function LoginForm() {
-  const router = useRouter();
+  const router = useRouter()
   const [form, setForm] = useState<LoginData>({
-    email: "",
-    password: "",
+    email: '',
+    password: '',
   });
 
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [captcha, setCaptcha] = useState<string | null>(null); // State for reCAPTCHA token
 
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!form.email || !form.password) {
-      setError("Email and password are required.");
-    } else {
-      setError(null);
-      alert("Login successful!");
+      setError('Email and password are required.');
+      return;
+    }
+    
+    // Check if reCAPTCHA is completed
+    // if (!captcha) {
+    //   setError("Please complete the reCAPTCHA.");
+    //   return;
+    // }
+
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+          // captcha, // Send the reCAPTCHA token to the backend
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.error || 'Login failed. Please check your credentials.');
+        return;
+      }
+
+      // Login was successful!
+      if (typeof window !== 'undefined' && result.token) {
+        localStorage.setItem('token', result.token);
+      }
+      
+      alert('Login successful!');
+      router.push('/dashboard'); 
+    } catch (err) {
+      console.error('Login Error:', err);
+      setError('An unexpected error occurred. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -73,7 +118,7 @@ export function LoginForm() {
       <div className="text-right text-sm mt-1">
         <button
           type="button"
-          onClick={() => router.push("/forgot-password")}
+          onClick={() => router.push('/forgot-password')}
           className="text-[#00694A] hover:underline font-medium cursor-pointer"
         >
           Forgot Password?
@@ -84,8 +129,9 @@ export function LoginForm() {
       <div>
         <label className="block text-label font-normal mb-2">reCAPTCHA</label>
         <ReCAPTCHA
-          sitekey="your_site_key_here"
-          onChange={(val) => console.log("captcha", val)}
+          sitekey="6LdlELgrAAAAAHRHGEmAVyWPLBjsVqcUgQg3U3QT"
+          // sitekey="your_site_key_here"
+          onChange={(val) => setCaptcha(val)} // Update state on completion
         />
       </div>
 
@@ -96,8 +142,9 @@ export function LoginForm() {
       <Button
         type="submit"
         className="w-full text-button font-medium bg-[#00694A] hover:bg-[#008562] text-white mt-10"
+        disabled={isSubmitting } // Disable button while submitting or until captcha is done
       >
-        Login
+        {isSubmitting ? 'Logging In...' : 'Login'}
       </Button>
 
       {/* Route Switch */}
@@ -105,7 +152,7 @@ export function LoginForm() {
         Don’t have an account?
         <button
           type="button"
-          onClick={() => router.push("/signup")}
+          onClick={() => router.push('/signup')}
           className="text-[#00694A] ml-1 hover:underline font-semibold cursor-pointer"
         >
           Signup now

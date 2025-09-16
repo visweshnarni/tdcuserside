@@ -1,75 +1,126 @@
 "use client";
-
+import { useEffect, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import axios from "axios";
 
 import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
+  Form, FormField, FormItem, FormLabel, FormControl, FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { basicDetailsSchema } from "@/lib/basicDetailsSchema";
 import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
+  Popover, PopoverTrigger, PopoverContent,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
-
 import { format } from "date-fns";
-import { register } from "module";
 
 export type Step1FormValues = z.infer<typeof basicDetailsSchema>;
+type NextStepData = Step1FormValues & { registrationCategory?: string };
 
 interface Props {
-  onNext: (data: Step1FormValues) => void;
+  onNext: (data: NextStepData) => void;
   defaultValues?: Partial<Step1FormValues>;
+  basicUserInfo?: { email: string; mobile_number: string } | null;  // Add this
+
   onFileChange?: (name: string, file: File) => void;
 }
 
-export default function BasicDetails({
-  onNext,
-  defaultValues,
-  onFileChange,
-}: Props) {
+interface FetchOptions {
+  _id: string;
+  name: string;
+}
+
+export default function BasicDetails({ onNext, defaultValues }: Props) {
+  const [regCategories, setRegCategories] = useState<FetchOptions[]>([]);
+  const [nationalities, setNationalities] = useState<FetchOptions[]>([]);
+  const [isFetching, setIsFetching] = useState(true);
+
   const methods = useForm<Step1FormValues>({
     resolver: zodResolver(basicDetailsSchema),
     defaultValues,
   });
 
-  const { handleSubmit } = methods;
+  const { handleSubmit, setValue } = methods;
 
-  const onSubmit = (data: Step1FormValues) => {
-    onNext(data);
+  // 🔹 Fetch logged-in user's email & phone
+  // Define what the API returns
+interface BasicProfileResponse {
+  success: boolean;
+  user: {
+    id: string;
+    full_name: string;
+    email: string;
+    mobile_number: string;
+  };
+}
+
+useEffect(() => {
+  const fetchBasicUser = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      // 👇 Tell Axios what the response looks like
+      const res = await axios.get<BasicProfileResponse>(
+        "http://localhost:5000/api/auth/me",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const { email, mobile_number } = res.data.user;
+      setValue("email", email);
+      setValue("mobile_number", mobile_number);
+    } catch (error) {
+      console.error("Failed to fetch basic user info:", error);
+    }
   };
 
-  // Add steps array (same as MultiStepForm for consistency)
-  const steps = [
-    { label: "Fill Basic Details" },
-    { label: "Upload Details" },
-    { label: "Review & Confirm" },
-    { label: "Confirm & Pay" },
-  ];
+  fetchBasicUser();
+}, [setValue]);
+
+  // 🔹 Fetch categories & nationalities
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [categoriesRes, nationalitiesRes] = await Promise.all([
+          axios.get<FetchOptions[]>("http://localhost:5000/api/users/categories"),
+          axios.get<FetchOptions[]>("http://localhost:5000/api/users/nationalities"),
+        ]);
+        setRegCategories(categoriesRes.data);
+        setNationalities(nationalitiesRes.data);
+      } catch (error) {
+        console.error("Failed to fetch form data:", error);
+      } finally {
+        setIsFetching(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const onSubmit = (data: Step1FormValues) => {
+    const selectedCategory = regCategories.find(cat => cat._id === data.regcategory_id);
+    if (selectedCategory) {
+      onNext({ ...data, registrationCategory: selectedCategory.name });
+    } else {
+      onNext(data);
+    }
+  };
+
+  if (isFetching) {
+    return <div className="text-center py-10">Loading form data...</div>;
+  }
 
   return (
     <div>
-      {/* <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6 md:p-10"> */}
-      {/* <FormStepper currentStep={1} steps={steps} /> */}
       <FormProvider {...methods}>
         <Form {...methods}>
           <form
@@ -78,46 +129,25 @@ export default function BasicDetails({
           >
             {/* Registration Category */}
             <FormField
-              name="registrationCategory"
+              name="regcategory_id"
               render={({ field }) => (
                 <FormItem className="w-full md:col-span-2">
                   <FormLabel>
                     Registration Category{" "}
                     <span className="text-red-500">*</span>
                   </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl className="w-full cursor-pointer">
                       <SelectTrigger>
                         <SelectValue placeholder="Select Registration Category" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Provisional Registration">
-                        Provisional Registration
-                      </SelectItem>
-                      <SelectItem value="Bachelor of Dental Surgery (BDS) from Telangana">
-                        Bachelor of Dental Surgery (BDS) from Telangana
-                      </SelectItem>
-                      <SelectItem value="Transfer BDS (BDS registrant - from other state dental councils in India)">
-                        Transfer BDS (BDS registrant - from other state dental
-                        councils in India)
-                      </SelectItem>
-                      <SelectItem value="Transfer BDS + New MDS">
-                        Transfer BDS + New MDS
-                      </SelectItem>
-                      <SelectItem value="Transfer MDS (MDS registrant - from other state dental councils in India)">
-                        Transfer MDS (MDS registrant - from other state dental
-                        councils in India)
-                      </SelectItem>
-                      <SelectItem value="Master of Dental Surgery (MDS) from Telangana">
-                        Master of Dental Surgery (MDS) from Telangana
-                      </SelectItem>
-                      <SelectItem value="Non Indian Dentist Registration (Temporary)">
-                        Non Indian Dentist Registration (Temporary)
-                      </SelectItem>
+                      {regCategories.map(cat => (
+                        <SelectItem key={cat._id} value={cat._id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -125,58 +155,46 @@ export default function BasicDetails({
               )}
             />
 
-            {/* first name */}
+            {/* First Name */}
             <FormField
-              name="fname"
-              render={(field) => (
+              name="f_name"
+              render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
                     First Name <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      className="w-full"
-                      placeholder="Enter your first name"
-                    />
+                    <Input {...field} className="w-full" placeholder="Enter your first name" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* middle name */}
+            {/* Middle Name */}
             <FormField
-              name="mname"
-              render={(field) => (
+              name="m_name"
+              render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>Middle Name</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      className="w-full"
-                      placeholder="Enter your middle name"
-                    />
+                    <Input {...field} className="w-full" placeholder="Enter your middle name" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* last name */}
+            {/* Last Name */}
             <FormField
-              name="lname"
-              render={(field) => (
+              name="l_name"
+              render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
                     Last Name <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      className="w-full"
-                      placeholder="Enter your last name"
-                    />
+                    <Input {...field} className="w-full" placeholder="Enter your last name" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -191,10 +209,7 @@ export default function BasicDetails({
                   <FormLabel>
                     Gender <span className="text-red-500">*</span>
                   </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl className="w-full cursor-pointer">
                       <SelectTrigger>
                         <SelectValue placeholder="Select Gender" />
@@ -213,28 +228,24 @@ export default function BasicDetails({
 
             {/* Father's Name */}
             <FormField
-              name="fatherName"
+              name="father_name"
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
                     Father's Name <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      className="w-full"
-                      placeholder="Father's Name"
-                    />
+                    <Input {...field} className="w-full" placeholder="Father's Name" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* mother name */}
+            {/* Mother's Name */}
             <FormField
-              name="mothername"
-              render={(field) => (
+              name="mother_name"
+              render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
                     Mother's Name<span className="text-red-500">*</span>
@@ -256,11 +267,7 @@ export default function BasicDetails({
                     Place<span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      className="w-full"
-                      placeholder="Place of birth"
-                    />
+                    <Input {...field} className="w-full" placeholder="Place of birth" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -269,7 +276,7 @@ export default function BasicDetails({
 
             {/* Date of Birth */}
             <FormField
-              name="dateOfBirth"
+              name="dob"
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
@@ -280,13 +287,9 @@ export default function BasicDetails({
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
-                          className={`w-full justify-between text-left font-normal ${
-                            !field.value ? "text-muted-foreground" : ""
-                          }`}
+                          className={`w-full justify-between text-left font-normal ${!field.value ? "text-muted-foreground" : ""}`}
                         >
-                          {field.value
-                            ? format(new Date(field.value), "dd/MM/yyyy")
-                            : "Select date"}
+                          {field.value ? format(new Date(field.value), "dd/MM/yyyy") : "Select date"}
                           <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
                         </Button>
                       </PopoverTrigger>
@@ -294,12 +297,8 @@ export default function BasicDetails({
                         <Calendar
                           mode="single"
                           captionLayout="dropdown"
-                          selected={
-                            field.value ? new Date(field.value) : undefined
-                          }
-                          onSelect={(date) =>
-                            field.onChange(date?.toISOString())
-                          }
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={(date) => field.onChange(date?.toISOString())}
                           initialFocus
                         />
                       </PopoverContent>
@@ -312,37 +311,24 @@ export default function BasicDetails({
 
             {/* Nationality */}
             <FormField
-              name="nationality"
+              name="nationality_id"
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
                     Nationality <span className="text-red-500">*</span>
                   </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl className="w-full cursor-pointer">
                       <SelectTrigger>
                         <SelectValue placeholder="Select Nationality" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Natural born Indian Citizen">
-                        Natural born Indian Citizen
-                      </SelectItem>
-                      <SelectItem value="Natural born British Subject">
-                        Natural born British Subject
-                      </SelectItem>
-                      <SelectItem value="British Subject if Indian Domicile">
-                        British Subject if Indian Domicile
-                      </SelectItem>
-                      <SelectItem value="Naturalized Indian Citizen">
-                        Naturalized Indian Citizen
-                      </SelectItem>
-                      <SelectItem value="Subject of a Foreign Government">
-                        Subject of a Foreign Government
-                      </SelectItem>
+                      {nationalities.map(nat => (
+                        <SelectItem key={nat._id} value={nat._id}>
+                          {nat.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -350,7 +336,7 @@ export default function BasicDetails({
               )}
             />
 
-            {/* category */}
+            {/* Category */}
             <FormField
               name="category"
               render={({ field }) => (
@@ -358,28 +344,17 @@ export default function BasicDetails({
                   <FormLabel>
                     Category <span className="text-red-500">*</span>
                   </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl className="w-full cursor-pointer">
                       <SelectTrigger>
-                        <SelectValue placeholder="Select Category"/>
+                        <SelectValue placeholder="Select Category" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent >
-                      <SelectItem value="Open Category">
-                        Open Category
-                      </SelectItem>
-                      <SelectItem value="Backward Classes">
-                        Backward Classes
-                      </SelectItem>
-                      <SelectItem value="Scheduled Castes">
-                        Scheduled Castes
-                      </SelectItem>
-                      <SelectItem value="Scheduled Tribes">
-                        Scheduled Tribes
-                      </SelectItem>
+                      <SelectItem value="Open Category">Open Category</SelectItem>
+                      <SelectItem value="Backward Classes">Backward Classes</SelectItem>
+                      <SelectItem value="Scheduled Castes">Scheduled Castes</SelectItem>
+                      <SelectItem value="Scheduled Tribes">Scheduled Tribes</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -387,27 +362,7 @@ export default function BasicDetails({
               )}
             />
 
-            {/* Email */}
-            {/* <FormField
-              name="email"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>
-                    Email <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      {...field}
-                      className="w-full"
-                      placeholder="Enter email"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            /> */}
-
+            {/* Email (auto-filled & locked) */}
             <FormField
               name="email"
               render={({ field }) => (
@@ -418,11 +373,7 @@ export default function BasicDetails({
                   <FormControl>
                     <Input
                       disabled
-                      value={
-                        field.value ??
-                        // defaultValues?.email ??
-                        "johndoe@example.com"
-                      }
+                      value={field.value ?? ""}
                       className="w-full bg-gray-100 cursor-not-allowed text-gray-700"
                     />
                   </FormControl>
@@ -431,30 +382,26 @@ export default function BasicDetails({
               )}
             />
 
-            {/* Mobile */}
+            {/* Mobile (auto-filled but editable) */}
             <FormField
-              name="mobile"
+              name="mobile_number"
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
                     Mobile Number <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      type="tel"
-                      {...field}
-                      className="w-full"
-                      placeholder="Enter mobile number"
-                    />
+                    <Input {...field} type="tel" className="w-full" placeholder="Enter mobile number" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
+            {/* Telephone */}
             <FormField
               name="telephone_number"
-              render={(field) => (
+              render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>Telephone Number</FormLabel>
                   <FormControl>
@@ -484,7 +431,7 @@ export default function BasicDetails({
 
             {/* PAN Number */}
             <FormField
-              name="panNumber"
+              name="pan_number"
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
@@ -496,9 +443,7 @@ export default function BasicDetails({
                       maxLength={10}
                       inputMode="text"
                       placeholder="e.g. AAAAA1234A"
-                      onChange={(e) =>
-                        field.onChange(e.target.value.toUpperCase())
-                      }
+                      onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                       className="w-full"
                     />
                   </FormControl>
@@ -507,10 +452,10 @@ export default function BasicDetails({
               )}
             />
 
-            {/* Upload PAN */}
+            {/* PAN Upload */}
             <FormField
-              name="panCard"
-              render={({ field }) => (
+              name="pan_upload"
+              render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem className="w-full">
                   <FormLabel>
                     Upload PAN Card (PDF)
@@ -518,15 +463,11 @@ export default function BasicDetails({
                   </FormLabel>
                   <FormControl>
                     <Input
+                      {...fieldProps}
                       type="file"
                       accept="application/pdf"
                       className="block w-full h-10 text-sm text-gray-900 border border-gray-300 rounded-md bg-white file:h-full file:bg-[#EFEFEF] file:text-gray-700 file:font-medium file:border-1 file:rounded-l-md file:rounded-r-md file:px-4 file:cursor-pointer file:text-center"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        field.onChange(file);
-                        if (file && onFileChange)
-                          onFileChange(field.name, file);
-                      }}
+                      onChange={(e) => onChange(e.target.files?.[0])}
                     />
                   </FormControl>
                   <FormMessage />
@@ -536,7 +477,7 @@ export default function BasicDetails({
 
             {/* Aadhaar Number */}
             <FormField
-              name="aadhaarNumber"
+              name="aadhaar_number"
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
@@ -549,9 +490,7 @@ export default function BasicDetails({
                       maxLength={12}
                       pattern="\d*"
                       placeholder="xxxx xxxx xxxx"
-                      onChange={(e) =>
-                        field.onChange(e.target.value.replace(/\D/g, ""))
-                      }
+                      onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ""))}
                       className="w-full"
                     />
                   </FormControl>
@@ -560,10 +499,10 @@ export default function BasicDetails({
               )}
             />
 
-            {/* Upload Aadhaar */}
+            {/* Aadhaar Upload */}
             <FormField
-              name="aadhaarCard"
-              render={({ field }) => (
+              name="aadhaar_upload"
+              render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem className="w-full">
                   <FormLabel>
                     Upload Aadhaar Card (PDF)
@@ -571,15 +510,11 @@ export default function BasicDetails({
                   </FormLabel>
                   <FormControl>
                     <Input
+                      {...fieldProps}
                       type="file"
                       accept="application/pdf"
                       className="block w-full h-10 text-sm text-gray-900 border border-gray-300 rounded-md bg-white file:h-full file:bg-[#EFEFEF] file:text-gray-700 file:font-medium file:border-1 file:rounded-l-md file:rounded-r-md file:px-4 file:cursor-pointer file:text-center"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        field.onChange(file);
-                        if (file && onFileChange)
-                          onFileChange(field.name, file);
-                      }}
+                      onChange={(e) => onChange(e.target.files?.[0])}
                     />
                   </FormControl>
                   <FormMessage />
@@ -589,28 +524,21 @@ export default function BasicDetails({
 
             {/* Registration Type */}
             <FormField
-              name="registrationType"
+              name="regtype"
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
                     Registration Type <span className="text-red-500">*</span>
                   </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl className="w-full cursor-pointer">
                       <SelectTrigger>
                         <SelectValue placeholder="Select Registration Type" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Regular (By Post - Fee includes postal charges)">
-                        Regular (By Post - Fee includes postal charges)
-                      </SelectItem>
-                      <SelectItem value="Tatkal (By Hand)">
-                        Tatkal (By Hand)
-                      </SelectItem>
+                      <SelectItem value="Regular (By Post - Fee includes postal charges)">Regular (By Post - Fee includes postal charges)</SelectItem>
+                      <SelectItem value="Tatkal (By Hand)">Tatkal (By Hand)</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -618,10 +546,10 @@ export default function BasicDetails({
               )}
             />
 
-            {/* Upload Signature */}
+            {/* Signature Upload */}
             <FormField
-              name="signature"
-              render={({ field }) => (
+              name="sign_upload"
+              render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem className="w-full">
                   <FormLabel>
                     Upload Signature (PDF){" "}
@@ -629,15 +557,11 @@ export default function BasicDetails({
                   </FormLabel>
                   <FormControl>
                     <Input
+                      {...fieldProps}
                       type="file"
                       accept="application/pdf"
                       className="block w-full h-10 text-sm text-gray-900 border border-gray-300 rounded-md bg-white file:h-full file:bg-[#EFEFEF] file:text-gray-700 file:font-medium file:border-1 file:rounded-l-md file:rounded-r-md file:px-4 file:cursor-pointer file:text-center"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        field.onChange(file);
-                        if (file && onFileChange)
-                          onFileChange(field.name, file);
-                      }}
+                      onChange={(e) => onChange(e.target.files?.[0])}
                     />
                   </FormControl>
                   <FormMessage />
@@ -647,10 +571,7 @@ export default function BasicDetails({
 
             {/* Submit */}
             <div className="md:col-span-2 flex justify-center pt-6">
-              <Button
-                type="submit"
-                className="bg-[#00694A] hover:bg-[#004d36] text-white"
-              >
+              <Button type="submit" className="bg-[#00694A] hover:bg-[#004d36] text-white">
                 Continue
               </Button>
             </div>
@@ -658,6 +579,5 @@ export default function BasicDetails({
         </Form>
       </FormProvider>
     </div>
-    // {/* // </div> */}
   );
 }

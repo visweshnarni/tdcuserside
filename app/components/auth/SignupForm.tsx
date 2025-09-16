@@ -29,6 +29,9 @@ export function SignupForm() {
   });
 
   const [errors, setErrors] = useState<FormErrors>({})
+  const [apiError, setApiError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [captcha, setCaptcha] = useState<string | null>(null); // State for reCAPTCHA token
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target
@@ -68,7 +71,7 @@ export function SignupForm() {
       newErrors.confirmEmail = "Please confirm your email.";
     } else if (form.confirmEmail !== form.email) {
       newErrors.confirmEmail = "Email addresses do not match.";
-    }    
+    }    
 
     if (!form.password) {
       newErrors.password = 'Password is required.'
@@ -86,14 +89,56 @@ export function SignupForm() {
     return newErrors
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
+    // Validate form fields first
     const validationErrors = validate()
+    setErrors(validationErrors)
+    setApiError(null)
+
     if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors)
-    } else {
-      setErrors({})
-      alert('Signup successful!')
+      return
+    }
+
+    // Check if reCAPTCHA is completed
+    // if (!captcha) {
+    //   setApiError("Please complete the reCAPTCHA.");
+    //   return;
+    // }
+
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          full_name: form.fullName,
+          email: form.email,
+          mobile_number: form.mobile,
+          password: form.password,
+          confirm_password: form.confirmPassword,
+          captcha, // Send the reCAPTCHA token to the backend
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setApiError(result.error || 'Signup failed. Please try again.');
+        return;
+      }
+
+      alert('Signup successful!');
+      router.push('/login');
+    } catch (error) {
+      console.error('Error during signup:', error);
+      setApiError('An unexpected error occurred. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -218,8 +263,9 @@ export function SignupForm() {
       <div>
         <label className="block text-label mb-2">reCAPTCHA</label>
         <ReCAPTCHA
-          sitekey="your_site_key_here"
-          onChange={(val) => console.log("captcha", val)}
+          sitekey="6LdlELgrAAAAAHRHGEmAVyWPLBjsVqcUgQg3U3QT"
+          // sitekey="your_site_key_here"
+          onChange={(val) => setCaptcha(val)} // Update state on completion
         />
       </div>
 
@@ -230,19 +276,23 @@ export function SignupForm() {
           htmlFor="agree"
           className="text-paragraph font-normal leading-snug"
         >
-          I agree to all{" "}
+          I agree to all{' '}
           <span className="text-[#00694A] hover:underline cursor-pointer text-xs">
             Read the T&C of TDC
           </span>
         </label>
       </div>
+      
+      {/* Display errors from backend */}
+      {apiError && <p className="text-sm text-red-600 mt-1">{apiError}</p>}
 
       {/* Submit */}
       <Button
         type="submit"
         className="w-full bg-[#00694A] hover:bg-[#008562] text-white"
+        disabled={isSubmitting } // Disable button while submitting or until captcha is done
       >
-        Sign Up
+        {isSubmitting ? 'Signing Up...' : 'Sign Up'}
       </Button>
 
       {/* Route Switch */}
@@ -250,7 +300,7 @@ export function SignupForm() {
         Already have an account?
         <button
           type="button"
-          onClick={() => router.push("/login")}
+          onClick={() => router.push('/login')}
           className="text-[#00694A] font-semibold hover:underline ml-1 cursor-pointer"
         >
           Login now

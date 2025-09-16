@@ -1,139 +1,88 @@
 import * as z from "zod";
 
 export const basicDetailsSchema = z.object({
-  // fname: z
-  //   .string()
-  //   .min(1, "First name is required")
-  //   .regex(/^[a-zA-Z\s]+$/, "Only alphabets are allowed"),
+  // Backend IDs are now optional for testing
+  regcategory_id: z.string().optional(),
+  nationality_id: z.string().optional(),
 
-  // mname: z
-  //   .string()
-  //   .regex(/^[a-zA-Z\s]*$/, "Only alphabets are allowed")
-  //   .optional(),
+  // Personal Information
+  f_name: z
+    .string()
+    .min(1, "First name is required")
+    .regex(/^[a-zA-Z\s]+$/, "Only alphabets are allowed")
+    .optional(),
 
-  // lname: z
-  //   .string()
-  //   .min(1, "Last name is required")
-  //   .regex(/^[a-zA-Z\s]+$/, "Only alphabets are allowed"),
+  m_name: z
+    .string()
+    .regex(/^[a-zA-Z\s]*$/, "Only alphabets are allowed")
+    .optional(),
 
-  // gender: z.enum(["Male", "Female", "Other"], {
-  //   required_error: "Gender is required",
-  // }),
+  l_name: z
+    .string()
+    .min(1, "Last name is required")
+    .regex(/^[a-zA-Z\s]+$/, "Only alphabets are allowed")
+    .optional(),
 
-  // fatherName: z
-  //   .string()
-  //   .min(1, "Father's Name is required")
-  //   .regex(/^[a-zA-Z\s]+$/, "Only alphabets are allowed"),
+  gender: z.enum(["Male", "Female", "Other"]).optional(),
 
-  // mothername: z
-  //   .string()
-  //   .min(1, "Mother's Name is required")
-  //   .regex(/^[a-zA-Z\s]*$/, "Only alphabets are allowed"),
+  father_name: z
+    .string()
+    .min(1, "Father's Name is required")
+    .regex(/^[a-zA-Z\s]+$/, "Only alphabets are allowed")
+    .optional(),
 
-  // dateOfBirth: z.string().min(1, "Date of Birth is required"), // Format validation (e.g. YYYY-MM-DD) can be added later
+  mother_name: z
+    .string()
+    .min(1, "Mother's Name is required")
+    .regex(/^[a-zA-Z\s]*$/, "Only alphabets are allowed")
+    .optional(),
 
-  // email: z.string().email("Invalid email format"),
-
-  // mobile: z
-  //   .string()
-  //   .min(10, "Mobile number must be 10 digits")
-  //   .max(10, "Mobile number must be 10 digits")
-  //   .regex(/^[0-9]+$/, "Only numbers are allowed"),
-
-  // telephone_number: z
-  //   .string()
-  //   .regex(/^[0-9]*$/, "Only numbers are allowed")
-  //   .optional(),
-
-  // address: z.string().min(1, "Residential address is required"),
-
-  // place: z.string().min(1, "Place is required"),
-
-  // panNumber: z
-  //   .string()
-  //   .min(1, "PAN number is required")
-  //   .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, {
-  //     message: "Invalid PAN number (e.g. AAAAA1234A)",
-  //   }),
-
-  // aadhaarNumber: z
-  //   .string()
-  //   .min(1, "Aadhaar number is required")
-  //   .regex(/^\d{12}$/, "Aadhaar must be 12 digits"),
-
-  // // PAN Card Upload
-  // panCard: z.custom<File>(
-  //   (file) =>
-  //     file instanceof File &&
-  //     file.type === "application/pdf" &&
-  //     file.size <= 5 * 1024 * 1024, // Max 5MB
-  //   {
-  //     message: "PAN Card PDF is required, must be a PDF, and less than 5MB",
-  //   }
-  // ),
-
-  // // Aadhaar Card Upload
-  // aadhaarCard: z.custom<File>(
-  //   (file) =>
-  //     file instanceof File &&
-  //     file.type === "application/pdf" &&
-  //     file.size <= 5 * 1024 * 1024, // Max 5MB
-  //   {
-  //     message: "Aadhaar Card PDF is required, must be a PDF, and less than 5MB",
-  //   }
-  // ),
-
-  // // Signature Upload
-  // signature: z.custom<File>(
-  //   (file) =>
-  //     file instanceof File &&
-  //     file.type === "application/pdf" &&
-  //     file.size <= 5 * 1024 * 1024, // Max 5MB
-  //   {
-  //     message: "Signature PDF is required, must be a PDF, and less than 5MB",
-  //   }
-  // ),
-
-  nationality: z.enum(
-    [
-      "Natural born Indian Citizen",
-      "Natural born British Subject",
-      "British Subject if Indian Domicile",
-      "Naturalized Indian Citizen",
-      "Subject of a Foreign Government",
-    ],
-    { required_error: "Nationality is required" }
-  ),
+  place: z.string().optional(),
+  
+  dob: z.string().optional(),
 
   category: z.enum(
-    [
-      "Open Category",
-      "Backward Classes",
-      "Scheduled Castes",
-      "Scheduled Tribes",
-    ],
-    { required_error: "Category is required" }
-  ),
+    ["Open Category", "Backward Classes", "Scheduled Castes", "Scheduled Tribes"]
+  ).optional(),
+  
+  // Contact Info
+  email: z.string().email("Invalid email format").optional(),
 
-  registrationCategory: z.enum(
-    [
-      "Provisional Registration",
-      "Bachelor of Dental Surgery (BDS) from Telangana",
-      "Transfer BDS (BDS registrant - from other state dental councils in India)",
-      "Transfer BDS + New MDS",
-      "Transfer MDS (MDS registrant - from other state dental councils in India)",
-      "Master of Dental Surgery (MDS) from Telangana",
-      "Non Indian Dentist Registration (Temporary)",
-    ],
-    {
-      required_error: "Registration Category is required",
-    }
-  ),
+  mobile_number: z
+    .string()
+    .min(10, "Mobile number must be 10 digits")
+    .max(10, "Mobile number must be 10 digits")
+    .regex(/^[0-9]+$/, "Only numbers are allowed")
+    .optional(),
 
-  registrationType: z.enum(
-    ["Regular (By Post - Fee includes postal charges)", "Tatkal (By Hand)"],
-    {
-      required_error: "Registration Type is required",
-    }
-  ),
+  telephone_number: z
+    .string()
+    .regex(/^[0-9]*$/, "Only numbers are allowed")
+    .optional(),
+
+  address: z.string().optional(),
+
+  // Identity Verification
+  pan_number: z
+    .string()
+    .min(1, "PAN number is required")
+    .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, {
+      message: "Invalid PAN number (e.g. AAAAA1234A)",
+    })
+    .optional(),
+
+  aadhaar_number: z
+    .string()
+    .min(1, "Aadhaar number is required")
+    .regex(/^\d{12}$/, "Aadhaar must be 12 digits")
+    .optional(),
+
+  regtype: z.enum(
+    ["Regular (By Post - Fee includes postal charges)", "Tatkal (By Hand)"]
+  ).optional(),
+
+  // File Uploads are now optional for testing
+  pan_upload: z.custom<File>((file) => file instanceof File).optional(),
+  aadhaar_upload: z.custom<File>((file) => file instanceof File).optional(),
+  sign_upload: z.custom<File>((file) => file instanceof File).optional(),
 });
