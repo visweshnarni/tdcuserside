@@ -1,38 +1,104 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Pencil } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Pencil } from "lucide-react";
+import axios from "axios";
 
-type ProfileData = {
+type ProfileField = {
   label: string;
   value: string;
+  editable?: boolean;
 };
 
-const profileFields: ProfileData[] = [
-  { label: 'Category', value: 'Bachelor of Dental Surgery (BDS)' },
-  { label: 'Membership No.', value: 'A-1273' },
-  { label: 'Name in full', value: 'Dr. MADISHETTI ABHILASH' },
-  { label: 'Gender', value: 'Male' },
-  { label: 'Father’s Name', value: 'MADISHETTI SATHAIAH' },
-  { label: 'Mother’s Name', value: 'MADISHETTI RANI' },
-  { label: 'Place, date & year of birth', value: 'JAGTIAL, 25/08/1992' },
-  { label: 'Nationality', value: 'Natural born Indian Citizen' },
-  { label: 'Residential address with pin code', value: 'H.NO:1-2-258/3, KRISHNANAGAR, JAGTIAL, DIST: JAGTIAL, PIN 505327' },
-  { label: 'Description of Qualification/s', value: 'RENEWAL OF BDS REGISTRATION' },
-  { label: 'Email ID', value: 'abhilash.madisetty92@gmail.com' },
-  { label: 'Mobile No.', value: '7842810845' },
-  { label: 'Aadhaar Card No.', value: '2801 0108 9567' },
-  { label: 'PAN No.', value: 'BEMPM1234C' },
- 
-
-];
-
-const editableLabels = ['Email ID', 'Mobile No.'];
+const editableLabels = ["Email ID", "Mobile No."];
 
 export default function Profile() {
-  const [fields, setFields] = useState(profileFields);
+  const [fields, setFields] = useState<ProfileField[]>([]);
   const [editingLabel, setEditingLabel] = useState<string | null>(null);
-  const [tempValue, setTempValue] = useState<string>("");
+  const [tempValue, setTempValue] = useState("");
+
+  useEffect(() => {
+    async function fetchProfile() {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const { data } = await axios.get("http://localhost:5000/api/users/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const user = (data as any).data;
+
+        const profileFields: ProfileField[] = [
+          {
+            label: "Category",
+            value: user.regcategory_name || "N/A",
+          },
+          {
+            label: "Membership No.",
+            value: user.membership_no || "N/A", // Add this field in your backend as needed
+          },
+          {
+            label: "Name in full",
+            value: [user.f_name, user.m_name, user.l_name].filter(Boolean).join(" ") || "N/A",
+          },
+          {
+            label: "Gender",
+            value: user.gender || "N/A",
+          },
+          {
+            label: "Father’s Name",
+            value: user.father_name || "N/A",
+          },
+          {
+            label: "Mother’s Name",
+            value: user.mother_name || "N/A",
+          },
+          {
+            label: "Place, date & year of birth",
+            value:
+              [user.place, user.dob ? new Date(user.dob).toLocaleDateString("en-IN") : null]
+                .filter(Boolean)
+                .join(", ") || "N/A",
+          },
+          {
+            label: "Nationality",
+            value: user.nationality_name || "N/A",
+          },
+          {
+            label: "Residential address with pin code",
+            value: user.address || "N/A",
+          },
+          {
+            label: "Description of Qualification/s",
+            value: user.qualification_description || "N/A",
+          },
+          {
+            label: "Email ID",
+            value: user.email || "N/A",
+            editable: true,
+          },
+          {
+            label: "Mobile No.",
+            value: user.mobile_number || "N/A",
+            editable: true,
+          },
+          {
+            label: "Aadhaar Card No.",
+            value: user.aadhaar_number || "N/A",
+          },
+          {
+            label: "PAN No.",
+            value: user.pan || user.pan_number || "N/A",
+          },
+        ];
+
+        setFields(profileFields);
+      } catch (error) {
+        console.error("Failed to load profile", error);
+      }
+    }
+
+    fetchProfile();
+  }, []);
 
   const handleEditClick = (label: string, value: string) => {
     setEditingLabel(label);
@@ -41,29 +107,28 @@ export default function Profile() {
 
   const handleCancel = () => {
     setEditingLabel(null);
-    setTempValue('');
+    setTempValue("");
   };
 
   const handleUpdate = () => {
-    if (editingLabel !== null) {
-      setFields(prev =>
-        prev.map(field =>
-          field.label === editingLabel ? { ...field, value: tempValue } : field
-        )
+    if (editingLabel != null) {
+      // Optionally send PATCH/PUT request here to update backend data
+
+      setFields((prev) =>
+        prev.map((field) => (field.label === editingLabel ? { ...field, value: tempValue } : field))
       );
       setEditingLabel(null);
     }
   };
 
   return (
-    <div >
-     
+    <div>
+      {/* <h2 className="text-green-700 font-semibold text-xl mb-4">My Profile</h2> */}
       <div className="space-y-4">
-        {fields.map(({ label, value }) => (
+        {fields.map(({ label, value, editable }) => (
           <div key={label} className="flex flex-col sm:flex-row sm:items-start justify-between">
             <div className="flex flex-col sm:flex-row sm:items-start sm:gap-2 w-full">
               <span className="font-medium text-gray-600 sm:w-64">{label}</span>
-
               {editingLabel === label ? (
                 <div className="flex flex-col sm:flex-row gap-2 sm:items-center w-full">
                   <input
@@ -74,14 +139,14 @@ export default function Profile() {
                   />
                   <div className="flex gap-2">
                     <button
-                      onClick={handleUpdate}
                       className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                      onClick={handleUpdate}
                     >
                       Update
                     </button>
                     <button
-                      onClick={handleCancel}
                       className="px-3 py-1 text-sm bg-gray-400 text-white rounded hover:bg-gray-500"
+                      onClick={handleCancel}
                     >
                       Cancel
                     </button>
@@ -89,10 +154,8 @@ export default function Profile() {
                 </div>
               ) : (
                 <div className="flex items-center justify-between w-full sm:w-auto">
-                  <span className="text-gray-900 font-semibold break-words">
-                    : {value}
-                  </span>
-                  {editableLabels.includes(label) && (
+                  <span className="text-gray-900 font-semibold break-words">{value || "N/A"}</span>
+                  {editable && (
                     <button
                       className="text-blue-600 hover:text-blue-800 ml-2"
                       onClick={() => handleEditClick(label, value)}
