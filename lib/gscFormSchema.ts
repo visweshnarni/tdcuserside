@@ -1,81 +1,54 @@
-// import { z } from "zod"
-
-// export const gscFormSchema = z.object({
-//   tdc_reg_certificate: z
-//     .any()
-//     .refine((file) => file instanceof File && file.type === "application/pdf", {
-//       message: "Only PDF files allowed",
-//     }),
-
-//   testimonial_dental1: z
-//     .any()
-//     .refine((file) => file instanceof File && file.type === "application/pdf", {
-//       message: "Only PDF files allowed",
-//     }),
-
-//   testimonial_dental2: z
-//     .any()
-//     .refine((file) => file instanceof File && file.type === "application/pdf", {
-//       message: "Only PDF files allowed",
-//     }),
-
-//   gsc_aadhaar_upload: z
-//     .any()
-//     .refine((file) => file instanceof File && file.type === "application/pdf", {
-//       message: "Only PDF files allowed",
-//     }),
-
-//   post_address: z
-//     .string()
-//     .min(1, { message: "Postal Address is required" }),
-
-//   tdc_reg_dental1: z
-//     .any()
-//     .refine((file) => file instanceof File && file.type === "application/pdf", {
-//       message: "Only PDF files allowed",
-//     }),
-
-//   tdc_reg_dental2: z
-//     .any()
-//     .refine((file) => file instanceof File && file.type === "application/pdf", {
-//       message: "Only PDF files allowed",
-//     }),
-// })
-
-// // Inferred TypeScript type for use in form
-// export type GscFormData = z.infer<typeof gscFormSchema>
-
 import * as z from "zod";
 
-// A reusable schema for a single file upload that supports empty uploads (for updates)
-const pdfFileSchema = z
-  .custom<FileList>()
-  .refine(files => files.length > 0, "PDF file is required.")
-  .refine(files => files[0]?.size <= 5 * 1024 * 1024, "File size must be less than 5MB.")
-  .refine(files => files[0]?.type === "application/pdf", "Only PDF files are allowed.");
+// Define a schema that allows a FileList (for new upload) OR a string (for existing URL)
+const FileOrUrlSchema = z.union([
+  // Case 1: Allows the field to be undefined (e.g., when the form initializes empty)
+  z.undefined(),
+  // Case 2: Allows a string URL (when editing an existing record)
+  z.string(),
+  // Case 3: The actual file input from the browser (FileList)
+  z.custom<FileList>((files) => files instanceof FileList, {
+    message: "Invalid file selection.",
+  }),
+]).optional();
 
+// Define validation that only runs if the user chose a *new* file (i.e., the value is a FileList)
+const fileValidationRefinement = FileOrUrlSchema.superRefine((val, ctx) => {
+  // If the value is a string (existing URL) or undefined/empty, it passes the file check.
+  if (typeof val === 'string' || !val || val.length === 0) {
+    return;
+  }
+  
+  // If we reach here, the value is a FileList with a file chosen (val.length > 0)
+  const file = val[0];
 
-// If you want file inputs optional for updates, use this instead
+  if (file.size > 5 * 1024 * 1024) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "File size must be less than 5MB.",
+    });
+  }
 
-const optionalPdfFileSchema = z
-  .custom<FileList>()
-  .optional()
-  .refine(files => !files || files.length === 0 || files[0]?.size <= 5 * 1024 * 1024, "File size must be less than 5MB.")
-  .refine(
-    files => !files || files.length === 0 || files[0]?.type === "application/pdf",
-    "Only PDF files are allowed."
-  );
+  if (file.type !== "application/pdf") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Only PDF files are allowed.",
+    });
+  }
+});
+
 
 export const gscFormSchema = z.object({
-  // Use optionalPdfFileSchema if you want to allow skipping file upload on update
-  tdc_reg_certificate_upload: optionalPdfFileSchema,
-  testimonial_d1_upload: optionalPdfFileSchema,
-  testimonial_d2_upload: optionalPdfFileSchema,
-  aadhaar_upload: optionalPdfFileSchema,
-  tdc_reg_d1_upload: optionalPdfFileSchema,
-  tdc_reg_d2_upload: optionalPdfFileSchema,
+  // Apply the fileValidationRefinement to all file fields
+  tdc_reg_certificate_upload: fileValidationRefinement,
+  testimonial_d1_upload: fileValidationRefinement,
+  testimonial_d2_upload: fileValidationRefinement,
+  aadhaar_upload: fileValidationRefinement,
+  tdc_reg_d1_upload: fileValidationRefinement,
+  tdc_reg_d2_upload: fileValidationRefinement,
+  
+  // Postal address remains strictly required
   postal_address: z.string().min(1, { message: "Postal Address is required" }),
 });
 
-// Inferred TypeScript type
 export type GscFormData = z.infer<typeof gscFormSchema>;
