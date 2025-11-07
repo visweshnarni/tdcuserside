@@ -50,55 +50,63 @@ export default function MultiStepForm() {
         setStep(3);
     };
 
-    // The final submission function that gets triggered from the Payment component
-    const handleFinalSubmit = async () => {
-        setIsSubmitting(true);
-        setSubmissionError(null);
+const handleFinalSubmit = async () => {
+  type ApiResponse = { success?: boolean; error?: string; [key: string]: any };
 
-        const token = localStorage.getItem("token");
-        if (!token) {
-            setSubmissionError("Authentication token is missing. Please log in again.");
-            setIsSubmitting(false);
-            return;
-        }
+  setIsSubmitting(true);
+  setSubmissionError(null);
 
-        const dataToSubmit = new FormData();
+  const token = localStorage.getItem("token");
+  if (!token) {
+    setSubmissionError("Authentication token is missing. Please log in again.");
+    setIsSubmitting(false);
+    return;
+  }
 
-        Object.entries(formData).forEach(([key, value]) => {
-            if (value instanceof File) {
-                dataToSubmit.append(key, value);
-            } else if (value !== undefined && value !== null) {
-                dataToSubmit.append(key, String(value));
-            }
-        });
+  const dataToSubmit = new FormData();
 
-        try {
-            await axios.post(
-                "http://localhost:5000/api/users/register",
-                dataToSubmit,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+  // Append all form fields and files
+  Object.entries(formData).forEach(([key, value]) => {
+    if (value instanceof File) {
+      dataToSubmit.append(key, value);
+    } else if (value !== undefined && value !== null) {
+      dataToSubmit.append(key, String(value));
+    }
+  });
 
-            alert("Form submitted successfully!");
-            router.push('/submission-success');
-        } catch (error) {
-            if (typeof error === "object" && error !== null && "response" in error && typeof (error as any).response === "object") {
-                const errMsg = (error as any).response?.data?.error || (error as any).message;
-                console.error("Form submission failed:", errMsg);
-                setSubmissionError((error as any).response?.data?.error || "An unexpected error occurred.");
-            } else {
-                console.error("Form submission failed:", (error as any)?.message || error);
-                setSubmissionError("An unexpected error occurred.");
-            }
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+  // 🧾 Debug log
+  for (let [key, val] of dataToSubmit.entries()) {
+    console.log("📦 Sending:", key, "=>", val);
+  }
+
+  try {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const response = await axios.post<ApiResponse>(`${API_URL}/api/users/register`, dataToSubmit, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.data && response.data.success) {
+      alert("Form submitted successfully!");
+      router.push("/dashboard/application-form/submission-success");
+    } else {
+      const err = response.data?.error || "Submission failed";
+      throw new Error(err);
+    }
+  } catch (error) {
+    console.error("Form submission failed:", error);
+    const errMsg =
+      (error as any).response?.data?.error ||
+      (error as any).message ||
+      "An unexpected error occurred.";
+    setSubmissionError(errMsg);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
     
     const steps = [
         { label: "Fill Basic Details" },
