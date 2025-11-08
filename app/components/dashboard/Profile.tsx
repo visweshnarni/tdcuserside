@@ -22,74 +22,74 @@ export default function Profile() {
       const token = localStorage.getItem("token");
       if (!token) return;
       try {
-        const { data } = await axios.get("http://localhost:5000/api/users/profile", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+       const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const { data } = await axios.get(`${API_URL}/api/users/profile`, {
+  headers: { Authorization: `Bearer ${token}` },
+});
+
         const user = (data as any).data;
 
-        const profileFields: ProfileField[] = [
-          {
-            label: "Category",
-            value: user.regcategory_name || "N/A",
-          },
-          {
-            label: "Membership No.",
-            value: user.membership_no || "N/A", // Add this field in your backend as needed
-          },
-          {
-            label: "Name in full",
-            value: [user.f_name, user.m_name, user.l_name].filter(Boolean).join(" ") || "N/A",
-          },
-          {
-            label: "Gender",
-            value: user.gender || "N/A",
-          },
-          {
-            label: "Father’s Name",
-            value: user.father_name || "N/A",
-          },
-          {
-            label: "Mother’s Name",
-            value: user.mother_name || "N/A",
-          },
-          {
-            label: "Place, date & year of birth",
-            value:
-              [user.place, user.dob ? new Date(user.dob).toLocaleDateString("en-IN") : null]
-                .filter(Boolean)
-                .join(", ") || "N/A",
-          },
-          {
-            label: "Nationality",
-            value: user.nationality_name || "N/A",
-          },
-          {
-            label: "Residential address with pin code",
-            value: user.address || "N/A",
-          },
-          {
-            label: "Description of Qualification/s",
-            value: user.qualification_description || "N/A",
-          },
-          {
-            label: "Email ID",
-            value: user.email || "N/A",
-            editable: true,
-          },
-          {
-            label: "Mobile No.",
-            value: user.mobile_number || "N/A",
-            editable: true,
-          },
-          {
-            label: "Aadhaar Card No.",
-            value: user.aadhaar_number || "N/A",
-          },
-          {
-            label: "PAN No.",
-            value: user.pan || user.pan_number || "N/A",
-          },
-        ];
+       const profileFields: ProfileField[] = [
+  {
+    label: "Category",
+    value: user.category || "N/A",
+  },
+  {
+    label: "Membership No.",
+    value: user.membership_no || "N/A",
+  },
+  {
+    label: "Name in full",
+    value: user.name_in_full || "N/A",
+  },
+  {
+    label: "Gender",
+    value: user.gender || "N/A",
+  },
+  {
+    label: "Father’s Name",
+    value: user.father_name || "N/A",
+  },
+  {
+    label: "Mother’s Name",
+    value: user.mother_name || "N/A",
+  },
+  {
+    label: "Place, date & year of birth",
+    value: user.place_dob || "N/A",
+  },
+  {
+    label: "Nationality",
+    value: user.nationality || "N/A",
+  },
+  {
+    label: "Residential address with pin code",
+    value: user.address || "N/A",
+  },
+  {
+    label: "Description of Qualification/s",
+    value: user.qualification_description || "N/A",
+  },
+  {
+    label: "Email ID",
+    value: user.email || "N/A",
+    editable: true,
+  },
+  {
+    label: "Mobile No.",
+    value: user.mobile_number || "N/A",
+    editable: true,
+  },
+  {
+    label: "Aadhaar Card No.",
+    value: user.aadhaar_number || "N/A",
+  },
+  {
+    label: "PAN No.",
+    value: user.pan_number || "N/A",
+  },
+];
+
 
         setFields(profileFields);
       } catch (error) {

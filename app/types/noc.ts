@@ -1,14 +1,12 @@
 export interface NocRecord {
-  id?: string;
+  _id?: string;
   name?: string;
   applicationNo?: string;
   applicationDate?: string;
   status?: "Pending" | "Approved" | "Rejected";
-
-  // Updated field names to match schema
   dental_council_name?: string;
-  current_tdc_reg_certificate?: FileList;
-  aadhaar_upload?: FileList;
-  post_address?: string;
+  postal_address?: string;
+  tdc_reg_certificate_upload?: string;
+  aadhaar_upload?: string;
   payment_id?: string;
 }

@@ -105,8 +105,8 @@ export default function NocDataTable({ data, onEdit }: Props) {
         </TableHeader>
         <TableBody>
           {paginatedData.length > 0 ? (
-            paginatedData.map((record) => (
-              <TableRow key={record.id}>
+            paginatedData.map((record, idx) => (
+              <TableRow key={record.applicationNo ?? idx}>
                 <TableCell className="text-center px-2 py-2">{record.name}</TableCell>
                 <TableCell className="text-center px-2 py-2">{record.applicationNo}</TableCell>
                 <TableCell className="text-center px-2 py-2">{record.applicationDate}</TableCell>
